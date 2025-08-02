@@ -1,0 +1,35 @@
+version: '3'
+
+services:
+  drone-server:
+    image: drone/drone:2
+    container_name: drone-server
+    ports:
+      - 8080:80
+    volumes:
+      - drone-data:/data
+    restart: always
+    environment:
+      - DRONE_SERVER_HOST=localhost:8080
+      - DRONE_SERVER_PROTO=https
+      - DRONE_RPC_SECRET=super-secret-string
+      - DRONE_GITEA_SERVER=https://gitea.yourdomain.com
+      - DRONE_USER_CREATE=username:admin,admin:true
+
+  drone-runner:
+    image: drone/drone-runner-docker:1
+    container_name: drone-runner
+    restart: always
+    depends_on:
+      - drone-server
+    environment:
+      - DRONE_RPC_HOST=drone-server
+      - DRONE_RPC_PROTO=http
+      - DRONE_RPC_SECRET=super-secret-string
+      - DRONE_RUNNER_CAPACITY=2
+      - DRONE_RUNNER_NAME=runner
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+
+volumes:
+  drone-data:

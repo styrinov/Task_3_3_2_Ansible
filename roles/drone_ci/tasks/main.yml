@@ -1,0 +1,178 @@
+# tasks file for roles/drone_ci
+---
+- name: Install required base packages
+  apt:
+    name:
+      - nginx
+      - curl
+      - apt-transport-https
+      - ca-certificates
+      - gnupg
+      - lsb-release
+    state: present
+    update_cache: yes
+
+- name: Add Docker GPG key
+  apt_key:
+    url: https://download.docker.com/linux/ubuntu/gpg
+    state: present
+
+- name: Add Docker APT repository
+  apt_repository:
+    repo: "deb [arch=amd64] https://download.docker.com/linux/ubuntu {{ ansible_distribution_release }} stable"
+    state: present
+    filename: docker
+
+- name: Install Docker and Docker Compose plugin
+  apt:
+    name:
+      - docker-ce
+      - docker-ce-cli
+      - containerd.io
+      - docker-compose-plugin
+    state: present
+    update_cache: yes
+
+- name: Add users to docker group
+  user:
+    name: "{{ item }}"
+    groups: docker
+    append: yes
+  loop: "{{ docker_users }}"
+
+- name: Create Drone directory
+  file:
+    path: /home/ubuntu/drone
+    state: directory
+    owner: ubuntu
+    group: ubuntu
+    mode: '0755'
+
+- name: Copy docker-compose.yml
+  copy:
+    src: docker-compose.yml
+    dest: /home/ubuntu/drone/docker-compose.yml
+    owner: ubuntu
+    group: ubuntu
+    mode: '0644'
+
+- name: Start Drone using docker-compose as root
+  shell: |
+    cd /home/ubuntu/drone
+    docker compose up -d
+  args:
+    executable: /bin/bash
+
+- name: Install Certbot and Nginx plugin
+  apt:
+    name:
+      - certbot
+      - python3-certbot-nginx
+    state: present
+
+- name: Ensure default Nginx site is removed
+  file:
+    path: /etc/nginx/sites-enabled/default
+    state: absent
+
+- name: Copy temporary HTTP-only Nginx config
+  template:
+    src: drone-nginx-http.conf.j2
+    dest: /etc/nginx/sites-available/drone
+    mode: '0644'
+
+- name: Enable Drone Nginx site
+  file:
+    src: /etc/nginx/sites-available/drone
+    dest: /etc/nginx/sites-enabled/drone
+    state: link
+    force: yes
+
+- name: Reload Nginx
+  service:
+    name: nginx
+    state: reloaded
+
+- name: Obtain Let’s Encrypt certificate via Certbot
+  shell: >
+    certbot --nginx --non-interactive --agree-tos
+    -m {{ certbot_email }} -d {{ domain_name }}
+  args:
+    creates: "/etc/letsencrypt/live/{{ domain_name }}/fullchain.pem"
+
+- name: Replace Nginx config with HTTPS-enabled version
+  template:
+    src: drone-nginx-ssl.conf.j2
+    dest: /etc/nginx/sites-available/drone
+    mode: '0644'
+
+- name: Reload Nginx with HTTPS
+  service:
+    name: nginx
+    state: reloaded
+
+- name: Ensure certbot auto-renewal is enabled
+  systemd:
+    name: certbot.timer
+    enabled: true
+    state: started
+
+- name: Install unzip for extracting Node Exporter
+  apt:
+    name: unzip
+    state: present
+    update_cache: yes
+
+- name: Download Node Exporter
+  get_url:
+    url: https://github.com/prometheus/node_exporter/releases/download/v1.8.2/node_exporter-1.8.2.linux-amd64.tar.gz
+    dest: /tmp/node_exporter-1.8.2.linux-amd64.tar.gz
+    mode: '0644'
+
+- name: Extract Node Exporter
+  unarchive:
+    src: /tmp/node_exporter-1.8.2.linux-amd64.tar.gz
+    dest: /tmp
+    remote_src: yes
+
+- name: Move Node Exporter binary to /usr/local/bin
+  copy:
+    src: /tmp/node_exporter-1.8.2.linux-amd64/node_exporter
+    dest: /usr/local/bin/node_exporter
+    mode: '0755'
+    remote_src: yes
+
+- name: Create Node Exporter systemd service file
+  copy:
+    dest: /etc/systemd/system/node_exporter.service
+    content: |
+      [Unit]
+      Description=Prometheus Node Exporter
+      After=network.target
+
+      [Service]
+      User=ubuntu
+      Group=ubuntu
+      Type=simple
+      ExecStart=/usr/local/bin/node_exporter
+      Restart=always
+
+      [Install]
+      WantedBy=multi-user.target
+    mode: '0644'
+
+- name: Ensure Node Exporter service is enabled and started
+  systemd:
+    name: node_exporter
+    enabled: yes
+    state: started
+
+- name: Clean up Node Exporter tarball
+  file:
+    path: /tmp/node_exporter-1.8.2.linux-amd64.tar.gz
+    state: absent
+
+- name: Clean up Node Exporter extracted directory
+  file:
+    path: /tmp/node_exporter-1.8.2.linux-amd64
+    state: absent

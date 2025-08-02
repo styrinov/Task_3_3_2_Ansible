@@ -1,0 +1,21 @@
+---
+- name: Deploy Drone CI with Nginx and HTTPS
+  hosts: name_docker_drone_app
+  become: true
+  roles:
+    - drone_ci
+
+- name: Deploy Prometheus and Alertmanager
+  hosts: name_prometheus
+  become: true
+  roles:
+    - prometheus
+    - alertmanager
+
+- name: Deploy Grafana
+  hosts: name_grafana
+  become: true
+  vars:
+    prometheus_url: "http://172.31.38.20:9090"
+  roles:
+    - grafana  

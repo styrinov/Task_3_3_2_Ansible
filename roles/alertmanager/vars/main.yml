@@ -1,0 +1,5 @@
+#SPDX-License-Identifier: MIT-0
+---
+alertmanager_download_url: "https://github.com/prometheus/alertmanager/releases/download/v{{ alertmanager_version }}/alertmanager-{{ alertmanager_version }}.linux-amd64.tar.gz"
+alertmanager_binary_dir: "/usr/local/bin"
+alertmanager_service_file: "/etc/systemd/system/alertmanager.service"

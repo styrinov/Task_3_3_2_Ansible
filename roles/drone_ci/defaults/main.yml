@@ -1,0 +1,6 @@
+# defaults file for roles/drone_ci
+---
+docker_users:
+  - ubuntu
+domain_name: ansible.styrinov.com.ua
+certbot_email: liebhaben1981@gmail.com

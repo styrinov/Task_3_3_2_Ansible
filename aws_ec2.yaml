@@ -1,0 +1,17 @@
+plugin: amazon.aws.aws_ec2
+regions:
+  - eu-north-1
+cache: no  
+filters:
+  instance-state-name: running
+keyed_groups:
+  - prefix: name
+    key: tags.Name
+  - prefix: role
+    key: tags.Role
+  - prefix: instance_type
+    key: instance_type
+  - prefix: aws_region
+    key: placement.region
+compose:
+  ansible_host: public_ip_address

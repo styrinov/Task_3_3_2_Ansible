@@ -1,0 +1,11 @@
+#SPDX-License-Identifier: MIT-0
+---
+# defaults file for roles/prometheus
+prometheus_version: "2.54.1"
+prometheus_scrape_targets:
+  - job_name: "node_exporter_ansible_host"
+    targets: ["172.31.39.170:9100"]
+prometheus_user: "prometheus"
+prometheus_group: "prometheus"
+prometheus_config_dir: "/etc/prometheus"
+prometheus_data_dir: "/var/lib/prometheus"
