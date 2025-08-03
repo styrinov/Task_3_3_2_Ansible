@@ -1,0 +1,15 @@
+#SPDX-License-Identifier: MIT-0
+---
+cloudwatch_agent_version: "1.247368.0b251814"
+cloudwatch_agent_config_dir: "/opt/aws/amazon-cloudwatch-agent/etc"
+cloudwatch_agent_log_dir: "/opt/aws/amazon-cloudwatch-agent/logs"
+cloudwatch_agent_metrics_namespace: "CWAgent"
+cloudwatch_agent_metrics_collection_interval: 60
+cloudwatch_agent_logs:
+  - log_group_name: "/aws/ec2/docker-drone-app/nginx"
+    log_stream_name: "{instance_id}/nginx_access.log"
+    file_path: "/var/log/nginx/access.log"
+  - log_group_name: "/aws/ec2/docker-drone-app/syslog"
+    log_stream_name: "{instance_id}/syslog"
+    file_path: "/var/log/syslog"
+cloudwatch_agent_region: "eu-north-1"

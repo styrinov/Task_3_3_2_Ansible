@@ -1,0 +1,58 @@
+{
+  "agent": {
+    "metrics_collection_interval": {{ cloudwatch_agent_metrics_collection_interval }},
+    "region": "{{ cloudwatch_agent_region }}"
+  },
+  "metrics": {
+    "namespace": "{{ cloudwatch_agent_metrics_namespace }}",
+    "metrics_collected": {
+      "cpu": {
+        "measurement": [
+          "cpu_usage_active",
+          "cpu_usage_iowait",
+          "cpu_usage_user",
+          "cpu_usage_system"
+        ],
+        "totalcpu": true
+      },
+      "mem": {
+        "measurement": [
+          "mem_used_percent",
+          "mem_available_percent"
+        ]
+      },
+      "disk": {
+        "measurement": [
+          "disk_used_percent",
+          "disk_free"
+        ],
+        "resources": ["/"]
+      },
+      "diskio": {
+        "measurement": [
+          "io_time",
+          "write_bytes",
+          "read_bytes"
+        ]
+      }
+    },
+    "append_dimensions": {
+      "InstanceId": "${aws:InstanceId}"
+    }
+  },
+  "logs": {
+    "logs_collected": {
+      "files": {
+        "collect_list": [
+          {% for log in cloudwatch_agent_logs %}
+          {
+            "file_path": "{{ log.file_path }}",
+            "log_group_name": "{{ log.log_group_name }}",
+            "log_stream_name": "{{ log.log_stream_name }}"
+          }{% if not loop.last %},{% endif %}
+          {% endfor %}
+        ]
+      }
+    }
+  }
+}

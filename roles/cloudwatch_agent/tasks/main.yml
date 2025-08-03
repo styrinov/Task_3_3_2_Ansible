@@ -1,0 +1,55 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Install dependencies for CloudWatch Agent
+  apt:
+    name:
+      - wget
+    state: present
+    update_cache: yes
+
+- name: Download CloudWatch Agent
+  get_url:
+    url: "{{ cloudwatch_agent_download_url }}"
+    dest: "/tmp/amazon-cloudwatch-agent.deb"
+    mode: '0644'
+
+- name: Install CloudWatch Agent
+  apt:
+    deb: "/tmp/amazon-cloudwatch-agent.deb"
+    state: present
+
+- name: Create CloudWatch Agent configuration directory
+  file:
+    path: "{{ cloudwatch_agent_config_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Create CloudWatch Agent log directory
+  file:
+    path: "{{ cloudwatch_agent_log_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: '0755'
+
+- name: Copy CloudWatch Agent configuration
+  template:
+    src: amazon-cloudwatch-agent.json.j2
+    dest: "{{ cloudwatch_agent_config_file }}"
+    owner: root
+    group: root
+    mode: '0644'
+  notify: Restart CloudWatch Agent
+
+- name: Ensure CloudWatch Agent service is enabled and started
+  systemd:
+    name: "{{ cloudwatch_agent_service_name }}"
+    enabled: yes
+    state: started
+
+- name: Clean up CloudWatch Agent installer
+  file:
+    path: "/tmp/amazon-cloudwatch-agent.deb"
+    state: absent

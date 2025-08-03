@@ -19,3 +19,11 @@
     prometheus_url: "http://172.31.38.20:9090"
   roles:
     - grafana  
+
+- name: Deploy CloudWatch Agent
+  hosts: name_docker_drone_app
+  become: true
+  vars:
+    cloudwatch_agent_region: "eu-north-1"
+  roles:
+    - cloudwatch_agent  
