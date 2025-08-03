@@ -1,0 +1,86 @@
+#SPDX-License-Identifier: MIT-0
+---
+- name: Add Grafana GPG key
+  apt_key:
+    url: "{{ grafana_apt_key_url }}"
+    state: present
+
+- name: Add Grafana APT repository
+  apt_repository:
+    repo: "{{ grafana_apt_repo }}"
+    state: present
+    filename: grafana
+
+- name: Install Grafana
+  apt:
+    name: grafana={{ grafana_version }}*
+    state: present
+    update_cache: yes
+
+- name: Create Grafana provisioning directories
+  file:
+    path: "{{ item }}"
+    state: directory
+    owner: grafana
+    group: grafana
+    mode: '0755'
+  loop:
+    - "{{ grafana_provisioning_dir }}"
+    - "{{ grafana_datasource_dir }}"
+    - "{{ grafana_dashboard_dir }}"
+
+- name: Copy Grafana configuration
+  template:
+    src: grafana.ini.j2
+    dest: "{{ grafana_config_dir }}/grafana.ini"
+    owner: grafana
+    group: grafana
+    mode: '0644'
+  notify: Restart Grafana
+
+- name: Copy Prometheus datasource configuration
+  template:
+    src: prometheus-datasource.yml.j2
+    dest: "{{ grafana_datasource_dir }}/prometheus.yml"
+    owner: grafana
+    group: grafana
+    mode: '0644'
+  notify: Restart Grafana
+
+- name: Copy Node Exporter dashboard
+  copy:
+    src: node_exporter_dashboard.json
+    dest: "{{ grafana_dashboard_dir }}/node_exporter_dashboard.json"
+    owner: grafana
+    group: grafana
+    mode: '0644'
+  notify: Restart Grafana
+
+- name: Create Grafana dashboards provisioning configuration
+  copy:
+    dest: "{{ grafana_provisioning_dir }}/dashboards/dashboards.yml"
+    content: |
+      apiVersion: 1
+      providers:
+        - name: 'default'
+          orgId: 1
+          folder: ''
+          type: file
+          options:
+            path: {{ grafana_dashboard_dir }}
+    owner: grafana
+    group: grafana
+    mode: '0644'
+  notify: Restart Grafana
+
+- name: Ensure Grafana service is enabled and started
+  systemd:
+    name: "{{ grafana_service_name }}"
+    enabled: yes
+    state: started
+
+- name: Set Grafana admin password
+  command: grafana-cli admin reset-admin-password {{ grafana_admin_password }}
+  args:
+    creates: "{{ grafana_data_dir }}/grafana.db"
+  notify: Restart Grafana

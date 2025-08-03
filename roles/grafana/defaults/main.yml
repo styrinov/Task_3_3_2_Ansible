@@ -1,0 +1,12 @@
+#SPDX-License-Identifier: MIT-0
+---
+grafana_version: "11.2.0"
+grafana_admin_user: "admin"
+grafana_admin_password: "admin"
+prometheus_url: "http://172.31.38.20:9090"
+grafana_port: 3000
+grafana_config_dir: "/etc/grafana"
+grafana_provisioning_dir: "{{ grafana_config_dir }}/provisioning"
+grafana_dashboard_dir: "{{ grafana_provisioning_dir }}/dashboards"
+grafana_datasource_dir: "{{ grafana_provisioning_dir }}/datasources"
+node_exporter_dashboard_id: 1860

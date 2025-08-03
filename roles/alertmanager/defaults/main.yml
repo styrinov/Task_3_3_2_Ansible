@@ -1,0 +1,17 @@
+#SPDX-License-Identifier: MIT-0
+---
+alertmanager_version: "0.27.0"
+alertmanager_port: 9093
+alertmanager_config_dir: "/etc/alertmanager"
+alertmanager_data_dir: "/var/lib/alertmanager"
+alertmanager_user: "alertmanager"
+alertmanager_group: "alertmanager"
+alertmanager_notification_receiver:
+  name: "null"
+  email_configs: []
+  # Example for email (uncomment and configure):
+  # - to: "admin@example.com"
+  #   from: "alertmanager@example.com"
+  #   smarthost: "smtp.example.com:587"
+  #   auth_username: "username"
+  #   auth_password: "password"

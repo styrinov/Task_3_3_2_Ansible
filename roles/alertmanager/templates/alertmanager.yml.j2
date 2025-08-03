@@ -1,0 +1,21 @@
+global:
+  resolve_timeout: 5m
+
+route:
+  receiver: "{{ alertmanager_notification_receiver.name }}"
+  group_wait: 30s
+  group_interval: 5m
+  repeat_interval: 4h
+
+receivers:
+  - name: "{{ alertmanager_notification_receiver.name }}"
+    {% if alertmanager_notification_receiver.email_configs %}
+    email_configs:
+    {% for email in alertmanager_notification_receiver.email_configs %}
+      - to: "{{ email.to }}"
+        from: "{{ email.from }}"
+        smarthost: "{{ email.smarthost }}"
+        auth_username: "{{ email.auth_username }}"
+        auth_password: "{{ email.auth_password }}"
+    {% endfor %}
+    {% endif %}

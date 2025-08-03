@@ -1,0 +1,7 @@
+#SPDX-License-Identifier: MIT-0
+---
+grafana_apt_key_url: "https://apt.grafana.com/gpg.key"
+grafana_apt_repo: "deb https://apt.grafana.com stable main"
+grafana_service_name: "grafana-server"
+grafana_binary_dir: "/usr/sbin"
+grafana_data_dir: "/var/lib/grafana"
