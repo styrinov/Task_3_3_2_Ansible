@@ -1,0 +1,5 @@
+#SPDX-License-Identifier: MIT-0
+---
+cloudwatch_agent_download_url: "https://s3.amazonaws.com/amazoncloudwatch-agent/ubuntu/amd64/latest/amazon-cloudwatch-agent.deb"
+cloudwatch_agent_service_name: "amazon-cloudwatch-agent"
+cloudwatch_agent_config_file: "{{ cloudwatch_agent_config_dir }}/amazon-cloudwatch-agent.json"
